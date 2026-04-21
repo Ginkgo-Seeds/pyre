@@ -1,16 +1,18 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-    "scripts": {
-  "dev": "nodemon --ext ts --exec \"npx tsx src/server.ts\"",
-  "start": "npx tsx src/server.ts"
-},
+  "name": "pyre-backend",
+  "version": "2.0.0",
+  "description": "Pyre — Backend do agente conversacional de criação e publicação de conteúdo",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "nodemon --ext ts --exec \"npx tsx src/server.ts\"",
+    "start": "npx tsx src/server.ts",
+    "build": "tsc"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@fastify/cors": "^11.2.0",
     "@supabase/supabase-js": "^2.104.0",
     "dotenv": "^17.4.2",
@@ -20,6 +22,6 @@
     "@types/node": "^25.6.0",
     "nodemon": "^3.1.14",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^5.8.0"
   }
 }
