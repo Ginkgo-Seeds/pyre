@@ -1,6 +1,6 @@
 // URL do backend — troque pela URL pública quando fizer deploy
 export const API_URL = __DEV__
-  ? 'http://192.168.0.1:3000'  // ← troque pelo IP local da sua máquina
+  ? 'http://192.168.0.112:3000'  // ← troque pelo IP local da sua máquina
   : 'https://seu-backend.railway.app'
 
 // ID de usuário temporário para testes (antes de implementar auth completo)
