@@ -1,0 +1,25 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+    "scripts": {
+  "dev": "nodemon --ext ts --exec \"npx tsx src/server.ts\"",
+  "start": "npx tsx src/server.ts"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@supabase/supabase-js": "^2.104.0",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}
