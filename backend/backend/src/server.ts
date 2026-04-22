@@ -2,16 +2,28 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import 'dotenv/config'
 
+import chatRoutes from './modules/chat/chat.routes'
+import contentRoutes from './modules/content/content.routes'
+import automationsRoutes from './modules/automations/automations.routes'
+
 const app = Fastify({ logger: true })
 
 app.register(cors, { origin: true })
 
-app.get('/health', async () => ({ status: 'ok', service: 'pyre-backend' }))
+app.get('/health', async () => ({
+  status: 'ok',
+  service: 'pyre-backend',
+  version: '2.0.0',
+  timestamp: new Date().toISOString()
+}))
 
-app.register(import('./modules/content/content.routes'), { prefix: '/content' })
+app.register(chatRoutes, { prefix: '/chat' })
+app.register(contentRoutes, { prefix: '/content' })
+app.register(automationsRoutes, { prefix: '/automations' })
 
 const start = async () => {
   await app.listen({ port: Number(process.env.PORT || 3000), host: '0.0.0.0' })
+  console.log('🔥 Pyre Backend v2.0 rodando na porta 3000')
 }
 
 start()
