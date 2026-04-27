@@ -4,7 +4,7 @@ export const API_URL = __DEV__
   : 'https://seu-backend.railway.app'
 
 // ID de usuário temporário para testes (antes de implementar auth completo)
-export const TEMP_USER_ID = 'test-user-gabriel-001'
+export const TEMP_USER_ID = 'a474e8c8-a5ab-4595-9ce2-f449dfb02d07'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {

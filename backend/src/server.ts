@@ -2,11 +2,17 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import 'dotenv/config'
 
+import chatRoutes from './modules/chat/chat.routes'
+import contentRoutes from './modules/content/content.routes'
+import publicationsRoutes from './modules/publications/publications.routes'
+import automationsRoutes from './modules/automations/automations.routes'
+import creditsRoutes from './modules/credits/credits.routes'
+import webhooksRoutes from './modules/webhooks/webhooks.routes'
+
 const app = Fastify({ logger: true })
 
 app.register(cors, { origin: true })
 
-// Health check
 app.get('/health', async () => ({
   status: 'ok',
   service: 'pyre-backend',
@@ -14,13 +20,12 @@ app.get('/health', async () => ({
   timestamp: new Date().toISOString()
 }))
 
-// Módulos
-app.register(import('./modules/chat/chat.routes'), { prefix: '/chat' })
-app.register(import('./modules/content/content.routes'), { prefix: '/content' })
-app.register(import('./modules/publications/publications.routes'), { prefix: '/publications' })
-app.register(import('./modules/automations/automations.routes'), { prefix: '/automations' })
-app.register(import('./modules/credits/credits.routes'), { prefix: '/credits' })
-app.register(import('./modules/webhooks/webhooks.routes'), { prefix: '/webhooks' })
+app.register(chatRoutes, { prefix: '/chat' })
+app.register(contentRoutes, { prefix: '/content' })
+app.register(publicationsRoutes, { prefix: '/publications' })
+app.register(automationsRoutes, { prefix: '/automations' })
+app.register(creditsRoutes, { prefix: '/credits' })
+app.register(webhooksRoutes, { prefix: '/webhooks' })
 
 const start = async () => {
   try {
