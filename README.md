@@ -1,13 +1,13 @@
 # Ginkgo Pyre
 
-Plataforma comercial de conteúdo, mídia e operações sociais conduzidas por agentes de IA.
+Studio comercial de criação multimodal assistida por IA, inspirado em fluxos unificados de produção como Google Flow.
 
 **Status:** produto oficial em desenvolvimento  
 **Repositório canônico:** `ginkgoai/ginkgo-pyre`  
 **Kernel:** Ginkgo Tree  
 **Licença atual:** proprietária comercial, com versões históricas sob MIT
 
-> Pyre é uma distribuição vertical do Ginkgo Tree. Este repositório contém somente módulos de estratégia editorial, geração de mídia, publicação, reciclagem e análise social. Identidade, tenancy, billing, políticas, auditoria, execução e white-label pertencem ao kernel compartilhado.
+> Pyre é primeiro um studio de criação. Estratégia social, calendário e publicação são extensões de distribuição dos ativos produzidos, não a identidade principal do produto.
 
 ## Papel no ecossistema
 
@@ -15,80 +15,108 @@ Plataforma comercial de conteúdo, mídia e operações sociais conduzidas por a
 AI Stack — laboratório aberto Apache-2.0
         │
         ▼
-Ginkgo Tree — kernel comercial e white-label OS
+Ginkgo Tree — autonomia, limites, memória e white-label
         │
-        └── Pyre — conteúdo e social operations
+        └── Pyre — multimodal AI creation studio
 ```
 
-## Escopo do produto
+## Escopo principal
 
-- calendário editorial multi-marca;
-- pesquisa, pauta e estratégia de conteúdo;
-- copywriting e adaptação por canal;
-- geração e transformação de imagens, áudio e vídeo;
-- reciclagem de conteúdo longo em formatos curtos;
-- publicação e agendamento multicanal;
-- aprovação humana por risco e marca;
-- experimentos de criativos e variações;
-- analytics, aprendizado e realimentação da pauta;
-- operação dedicada ou white-label mediante contrato.
+- ideação e desenvolvimento de conceitos;
+- referências visuais e moodboards;
+- roteiro, storyboard, cenas e planos;
+- geração e edição de imagens;
+- geração, montagem e continuidade de vídeo;
+- áudio, voz, trilha e sincronização;
+- personagens, ambientes e identidade visual persistentes;
+- timeline, versões, takes, assets e projetos;
+- transformação de formatos e aspect ratios;
+- variações, experimentos e comparação de resultados;
+- colaboração e aprovação humana;
+- biblioteca de ativos e memória criativa;
+- exportação para campanhas, redes, anúncios e canais;
+- calendário e publicação como módulos opcionais;
+- implantação dedicada ou white-label mediante contrato.
+
+## Experiência pretendida
+
+```text
+Ideia / briefing
+      │
+      ▼
+Projeto Pyre
+  ├── referências e identidade
+  ├── roteiro e storyboard
+  ├── geração de cenas e assets
+  ├── edição e continuidade
+  ├── áudio e finalização
+  └── versões, aprovação e exportação
+```
+
+O objetivo é reduzir a fragmentação entre ferramentas, preservando projeto, contexto, personagens, estilo, arquivos e histórico de decisões em um único ambiente assistido por IA.
 
 ## Fronteira de responsabilidades
 
-### Este repositório contém
+### Pyre contém
 
-- módulos editoriais e media factory;
-- adaptadores de redes sociais;
-- workflows e políticas de publicação;
-- interface e navegação específicas do Pyre;
-- templates de conteúdo e schemas de campanha;
-- métricas e loops de aprendizado social;
+- canvas, projetos, cenas, timeline e biblioteca de mídia;
+- módulos de imagem, vídeo, áudio e edição;
+- continuidade visual e identidade de personagens;
+- workflows de criação e renderização;
+- adaptadores de provedores multimodais;
+- interface e navegação do studio;
+- exportadores, publicadores e analytics criativos;
 - testes, documentação e deploy da edição.
 
 ### Ginkgo Tree contém
 
 - autenticação, organizações, RBAC e multi-tenancy;
-- billing, metering e carteira de tokens;
-- agent runtime, skills, approvals e auditoria;
+- billing, metering, orçamento e carteira de tokens;
+- agent runtime, autonomia, approvals e auditoria;
 - secrets boundary e contratos de execução;
+- Laplace para memória criativa, RAG, assets e proveniência;
 - white-label, temas, domínios e componentes compartilhados.
 
-Pyre deve consumir pacotes privados versionados do namespace `@ginkgo/*`. Não copie o kernel para este repositório.
+Pyre deve consumir pacotes privados versionados `@ginkgo/*`; o kernel não deve ser copiado para este repositório.
 
 ## Arquitetura de alto nível
 
 ```text
-Operador / Marca
+Criador / Equipe
       │
       ▼
-Pyre Web ──► módulos editoriais
-                  │
-                  ├──► Ginkgo Tree kernel
-                  ├──► filas e workers de mídia
-                  ├──► n8n como executor limitado
-                  ├──► provedores de geração
-                  └──► publicadores e analytics
+Pyre Studio
+  ├── canvas e timeline
+  ├── projetos, cenas e assets
+  ├── agentes criativos assistivos
+  ├── provedores de imagem, vídeo e áudio
+  └── render, aprovação e exportação
+      │
+      ├──► Ginkgo Tree
+      ├──► Laplace
+      ├──► filas e workers de mídia
+      └──► provedores e canais autorizados
 ```
 
 ## Princípios
 
-1. **Marca como política:** tom, identidade, restrições e aprovação são dados versionados.
-2. **Publicação controlada:** ações externas obedecem autorização, calendário e kill switch.
-3. **Proveniência:** ativos gerados registram modelo, prompt, versão e fontes permitidas.
-4. **Direitos autorais e de imagem:** materiais precisam de origem e permissão compatíveis.
-5. **Medição fecha o loop:** performance realimenta pauta e experimentos.
+1. **Projeto antes do prompt:** contexto e assets persistem ao longo da produção.
+2. **Continuidade visual:** personagens, ambientes e estilos precisam de referência versionada.
+3. **IA assistiva:** o usuário dirige; agentes sugerem, montam e executam dentro de limites.
+4. **Proveniência:** ativos registram modelo, prompt, versão, fontes e direitos aplicáveis.
+5. **Aprovação antes da publicação:** exportação externa obedece regras de marca e autorização.
 6. **Produto não duplica kernel:** capacidades reutilizáveis retornam ao Ginkgo Tree.
 
 ## Desenvolvimento
 
-- comportamento reutilizável por várias edições → `ginkgo-tree`;
-- comportamento exclusivo de conteúdo/social → `ginkgo-pyre`;
-- exemplo genérico e sanitizado → `ai-stack`.
+- comportamento compartilhado → `ginkgo-tree`;
+- criação multimodal e studio → `ginkgo-pyre`;
+- exemplo genérico sanitizado → `ai-stack`.
 
-Nunca versione tokens sociais, contas de clientes, mídia privada, exports de produção ou dados analíticos identificáveis.
+Nunca versione tokens de provedores, mídia privada, identidade de clientes, exports de produção ou material sem direitos compatíveis.
 
 ## Licenciamento
 
-Este repositório possuía versões históricas sob MIT. A licença histórica está preservada em `LICENSES/MIT-2025.txt`. Novas revisões proprietárias seguem `LICENSE` e `LICENSING.md`.
+Versões históricas foram publicadas sob MIT e permanecem cobertas por essa concessão, preservada em `LICENSES/MIT-2025.txt`. Novas revisões proprietárias seguem `LICENSE` e `LICENSING.md`.
 
 Produção, hospedagem, distribuição, white-label, OEM e acesso ao código dependem de autorização escrita da Ginkgo AI Systems.
