@@ -1,21 +1,25 @@
-MIT License
+GINKGO COMMERCIAL PRODUCT LICENSE NOTICE
 
-Copyright (c) 2025 Ginkgo AI Systems
+Product: Ginkgo Pyre
+Effective for new proprietary revisions from August 1, 2026
+Copyright (c) 2026 Ginkgo AI Systems. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+IMPORTANT HISTORICAL NOTICE
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Earlier versions of this repository were published under the MIT License. Rights already granted for those historical versions remain governed by the MIT text preserved at `LICENSES/MIT-2025.txt` and by the repository history in which that license appeared.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+This notice applies prospectively to new code, documentation, designs, workflows, schemas, assets and modifications added after the licensing transition, but only to the extent that Ginkgo AI Systems owns or is authorized to license those materials under proprietary terms.
+
+PROPRIETARY TERMS
+
+Except for materials separately identified under an open-source or third-party license, no permission is granted to use, copy, modify, deploy, host, distribute, sublicense, resell, white-label, offer as a service, or create derivative commercial products from proprietary materials in this repository without a separate written agreement authorized by Ginkgo AI Systems.
+
+Access to this repository does not grant production, SaaS, managed-service, OEM, source-license, redistribution or trademark rights.
+
+Authorized customers, partners, employees and contractors may use proprietary materials only within the scope of their applicable written agreement and must preserve all copyright, attribution and proprietary notices.
+
+Third-party software remains governed by its respective license. Nothing in this notice reduces rights independently granted under the historical MIT License or any other applicable third-party license.
+
+THE PROPRIETARY MATERIALS ARE PROVIDED "AS IS" TO THE MAXIMUM EXTENT PERMITTED BY LAW, WITHOUT WARRANTIES OF ANY KIND. GINKGO AI SYSTEMS IS NOT LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES ARISING FROM UNAUTHORIZED OR EVALUATION USE.
+
+See `LICENSING.md` for the transition policy. Commercial licensing requires a written agreement with Ginkgo AI Systems.
