@@ -8,6 +8,7 @@ import publicationsRoutes from './modules/publications/publications.routes'
 import automationsRoutes from './modules/automations/automations.routes'
 import creditsRoutes from './modules/credits/credits.routes'
 import webhooksRoutes from './modules/webhooks/webhooks.routes'
+import creativeRoutes from './modules/creative/creative.routes'
 
 const app = Fastify({ logger: true })
 
@@ -26,6 +27,7 @@ app.register(publicationsRoutes, { prefix: '/publications' })
 app.register(automationsRoutes, { prefix: '/automations' })
 app.register(creditsRoutes, { prefix: '/credits' })
 app.register(webhooksRoutes, { prefix: '/webhooks' })
+app.register(creativeRoutes, { prefix: '/v1/creative' })
 
 const start = async () => {
   try {
