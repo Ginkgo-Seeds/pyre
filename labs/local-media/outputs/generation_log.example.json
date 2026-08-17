@@ -1,0 +1,27 @@
+{
+  "generation_id": "<generation-id>",
+  "character_id": "<character-version>",
+  "workflow_version": "<workflow-version>",
+  "provider": "<provider-name>",
+  "checkpoint": "<confirmed-checkpoint-name>",
+  "seed": null,
+  "prompt": "<approved-positive-prompt>",
+  "negative_prompt": "<approved-negative-prompt>",
+  "width": null,
+  "height": null,
+  "status": "<planned|submitted|completed|failed|rejected>",
+  "started_at": null,
+  "completed_at": null,
+  "duration_seconds": null,
+  "estimated_cost": null,
+  "output_filename": null,
+  "quality_scores": {
+    "identity": null,
+    "naturalness": null,
+    "anatomy": null,
+    "lighting": null,
+    "photographic_quality": null,
+    "social_media_suitability": null
+  },
+  "notes": "<non-sensitive-notes>"
+}

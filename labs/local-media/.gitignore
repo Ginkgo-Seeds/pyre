@@ -1,0 +1,10 @@
+# Segredos locais: nunca versionar.
+.env
+.env.*
+!.env.example
+
+# Artefatos transitórios.
+__pycache__/
+*.py[cod]
+outputs/generated/*
+!outputs/generated/.gitkeep

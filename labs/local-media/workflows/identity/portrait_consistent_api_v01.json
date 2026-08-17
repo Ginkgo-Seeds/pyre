@@ -1,0 +1,86 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "sd_xl_base_1.0.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "photorealistic studio portrait of a fictional adult Brazilian lifestyle creator, 28 years old, warm medium-brown skin, oval face, dark brown almond eyes, shoulder-length wavy dark brown hair with a center part, subtle gold hoop earrings, beige linen shirt, natural makeup, relaxed confident expression, soft window light, clean warm-neutral background, 85mm portrait photography, editorial quality, realistic skin texture",
+      "clip": [
+        "1",
+        1
+      ]
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "minor, child, teenager, text, watermark, logo, blurry, low resolution, plastic skin, deformed face, asymmetrical eyes, extra fingers, duplicate person, harsh flash",
+      "clip": [
+        "1",
+        1
+      ]
+    }
+  },
+  "4": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 2407202601,
+      "steps": 28,
+      "cfg": 6.0,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1.0,
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "2",
+        0
+      ],
+      "negative": [
+        "3",
+        0
+      ],
+      "latent_image": [
+        "4",
+        0
+      ]
+    }
+  },
+  "6": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    }
+  },
+  "7": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "identity/portrait_consistent_v01",
+      "images": [
+        "6",
+        0
+      ]
+    }
+  }
+}
