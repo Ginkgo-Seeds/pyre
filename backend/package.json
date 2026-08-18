@@ -4,10 +4,10 @@
   "description": "Pyre — Backend do agente conversacional de criação e publicação de conteúdo",
   "main": "src/server.ts",
   "scripts": {
-  "dev": "node --require ts-node/register src/server.ts",
-  "start": "node --require ts-node/register src/server.ts",
-  "test": "node --require ts-node/register --test src/modules/creative/creative.test.ts"
-},
+    "dev": "node --require ts-node/register src/server.ts",
+    "start": "node --require ts-node/register src/server.ts",
+    "test": "node --require ts-node/register --test src/modules/creative/creative.test.ts src/modules/creative/creative.lifecycle.test.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -16,10 +16,12 @@
     "@fastify/cors": "^11.2.0",
     "@supabase/supabase-js": "^2.104.0",
     "dotenv": "^17.4.2",
-    "fastify": "^5.8.5"
+    "fastify": "^5.8.5",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@types/pg": "^8.23.1",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.0"

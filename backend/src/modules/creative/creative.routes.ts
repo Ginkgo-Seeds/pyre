@@ -1,33 +1,39 @@
-// Rotas do Creative Router (registradas em server.ts com prefixo /v1/creative):
-//   POST /v1/creative/jobs               — submete CreativeGenerationRequest
-//   GET  /v1/creative/jobs/:job_id       — consulta resultado normalizado
-//   GET  /v1/creative/providers/health   — saúde dos providers registrados
+// Rotas do Creative Router v2 (Wave 9) — prefixo /v1/creative em server.ts:
+//   POST /jobs                — submete (idempotente por request_id)
+//   GET  /jobs/:job_id        — resultado normalizado (persistido)
+//   GET  /providers/health    — saúde real dos providers + estado do runtime
 //
-// O caller usa SOMENTE os contratos normalizados (creative.contracts.ts).
+// Routes NÃO acessam banco diretamente — tudo via CreativeRouter/Repository.
 
 import { FastifyInstance } from 'fastify'
 import { CreativeErrorCode } from './creative.contracts'
 import { CreativeRouter } from './creative.router'
+import { buildRepository } from './creative.repository'
+import { buildRuntimeManager } from './runtime/creative-runtime.manager'
 import { ComfyUIProvider } from './providers/comfyui.provider'
+import { GoogleImageProvider } from './providers/google-image.provider'
 
 const HTTP_BY_CODE: Record<CreativeErrorCode, number> = {
   INVALID_REQUEST: 400,
   UNSUPPORTED_CAPABILITY: 400,
+  IDEMPOTENCY_CONFLICT: 409,
   PROVIDER_UNAVAILABLE: 503,
   PROVIDER_UNHEALTHY: 503,
   GENERATION_FAILED: 502,
   TIMEOUT: 504,
-  ASSET_NOT_FOUND: 404
-}
-
-export function buildCreativeRouter(): CreativeRouter {
-  const router = new CreativeRouter()
-  router.register(new ComfyUIProvider())
-  return router
+  ASSET_NOT_FOUND: 404,
+  PROVIDER_STATE_LOST: 500
 }
 
 export default async function creativeRoutes(app: FastifyInstance) {
-  const router = buildCreativeRouter()
+  const repo = buildRepository()
+  await repo.init()
+  const runtime = buildRuntimeManager()
+  const router = new CreativeRouter(repo, runtime)
+  router.register(new ComfyUIProvider())
+  router.register(new GoogleImageProvider())
+  const reconciled = await router.reconcile()
+  if (reconciled) app.log.info({ reconciled }, 'creative jobs reconciliados pós-restart')
 
   app.post('/jobs', async (req, reply) => {
     const result = await router.submit((req.body as any) ?? {})
@@ -42,9 +48,7 @@ export default async function creativeRoutes(app: FastifyInstance) {
     const result = await router.getJob(job_id)
     if (!result) {
       return reply.status(404).send({
-        request_id: 'unknown',
-        job_id,
-        status: 'failed',
+        request_id: 'unknown', job_id, status: 'failed',
         error: { code: 'ASSET_NOT_FOUND', message: 'job desconhecido', retryable: false }
       })
     }
@@ -55,6 +59,7 @@ export default async function creativeRoutes(app: FastifyInstance) {
   })
 
   app.get('/providers/health', async () => ({
+    runtime_state: runtime.getState(),
     providers: await router.providersHealth()
   }))
 }

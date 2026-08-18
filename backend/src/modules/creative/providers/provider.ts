@@ -1,8 +1,8 @@
-// Abstração de provider criativo. O Router conhece SOMENTE esta interface.
-// Providers futuros (fal.ai, Higgsfield, Google image/video) implementam o
-// mesmo contrato sem que o Router ou os callers mudem.
+// Abstração de provider criativo (v2 — Wave 9, repository-driven).
+// O Router conhece SOMENTE esta interface; local e cloud implementam o mesmo
+// contrato e o caller não consegue detectar o provider pelo formato da resposta.
 
-import { CreativeGenerationRequest, CreativeGenerationResult } from '../creative.contracts'
+import { CreativeError, CreativeGenerationRequest } from '../creative.contracts'
 
 export interface ProviderCapability {
   capability: string
@@ -15,19 +15,37 @@ export interface ProviderHealth {
   detail?: string
 }
 
+export interface ProviderSubmission {
+  provider_job_id: string
+}
+
+export interface ProviderJobUpdate {
+  phase: 'running' | 'completed' | 'failed'
+  asset?: { path: string; mime_type: string; width: number; height: number; bytes: number }
+  seed?: number
+  billing_cost_usd?: number
+  error?: CreativeError
+}
+
+export interface ProviderProvenance {
+  provider_version: string
+  model: string
+  model_sha256: string
+}
+
 export interface CreativeProvider {
-  /** Identificador estável do provider (ex.: 'local'). */
+  /** Identificador estável (ex.: 'local', 'cloud-google'). */
   id(): string
-  /** Ferramenta concreta por trás do provider (ex.: 'comfyui-local'). */
+  /** Ferramenta concreta (ex.: 'comfyui-local', 'gemini-image'). */
   tool(): string
-  /** Pares capability/skill/kind que este provider atende. */
   capabilities(): ProviderCapability[]
-  /** Health check REAL (endpoint do serviço, não apenas porta aberta). */
+  /** true → Router aciona o CreativeRuntimeManager antes do submit. */
+  requiresLocalRuntime(): boolean
+  provenance(): ProviderProvenance
+  /** Health REAL (endpoint do serviço/credencial), nunca só porta aberta. */
   health(): Promise<ProviderHealth>
-  /** Submete um request validado; retorna o job_id do Pyre. */
-  submit(request: CreativeGenerationRequest): Promise<string>
-  /** Estado atual do job (pode ainda estar rodando). */
-  status(jobId: string): Promise<CreativeGenerationResult>
-  /** Resultado final normalizado (igual a status quando concluído). */
-  result(jobId: string): Promise<CreativeGenerationResult>
+  /** Submete; retorna o id interno do provider (nunca exposto ao caller). */
+  submit(request: CreativeGenerationRequest, pyreJobId: string): Promise<ProviderSubmission>
+  /** Consulta andamento de um job já submetido. */
+  fetchStatus(providerJobId: string, ctx: { request: CreativeGenerationRequest; pyreJobId: string }): Promise<ProviderJobUpdate>
 }
