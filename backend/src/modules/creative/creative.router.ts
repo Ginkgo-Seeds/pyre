@@ -14,7 +14,9 @@ import {
   CreativeGenerationRequest,
   CreativeGenerationResult,
   DEFAULT_PRESET,
+  SKILL_IMAGE_GENERATE,
   err,
+  privacyIsLocalOnly,
   validateRequest
 } from './creative.contracts'
 import { CreativeJobRecord, CreativeJobRepository } from './creative.repository'
@@ -48,9 +50,48 @@ export class CreativeRouter {
     return this.providers.find(p => p.id() === id)
   }
 
-  select(request: CreativeGenerationRequest): { provider: CreativeProvider; routing_reason: string } | CreativeError {
-    if (request.constraints?.privacy === 'local-only' && request.capability !== CAPABILITY_IMAGE_LOCAL) {
-      return err('INVALID_REQUEST', "constraints.privacy='local-only' exige capability creative.image.local", false)
+  /** Routing V3 (Wave 10): goal → skill → constraints → eligible providers → policy → provider.
+   *  Somente providers VALIDATED são elegíveis em produção; EXPERIMENTAL exige modo eval
+   *  explícito (CREATIVE_EVAL_MODE=true). Zero fallback silencioso. */
+  select(request: CreativeGenerationRequest): { provider: CreativeProvider; routing_reason: string; resolvedCapability: string } | CreativeError {
+    const evalMode = process.env.CREATIVE_EVAL_MODE === 'true'
+
+    // ---- Skill genérica: media.image.generate --------------------------------
+    if (request.skill === SKILL_IMAGE_GENERATE) {
+      const c = request.constraints || {}
+      const maxCost = c.max_cost_usd ?? c.max_cost
+      const reasons: string[] = ['generic_policy=validated_only']
+      const excluded: string[] = []
+      let eligible = this.providers.filter(p => p.capabilities().some(cap => cap.kind === request.kind))
+      eligible = eligible.filter(p => {
+        const st = p.providerStatus()
+        if (st === 'VALIDATED') return true
+        if (st === 'EXPERIMENTAL' && evalMode) { reasons.push(`eval_mode_includes=${p.id()}`); return true }
+        excluded.push(`${p.id()}:${st}`)
+        return false
+      })
+      if (privacyIsLocalOnly(c)) { eligible = eligible.filter(p => p.requiresLocalRuntime()); reasons.push('privacy=local_only') }
+      if (c.residency === 'local') { eligible = eligible.filter(p => p.requiresLocalRuntime()); reasons.push('residency=local') }
+      if (maxCost !== undefined) {
+        const before = eligible.length
+        eligible = eligible.filter(p => p.estimatedCostUsd() <= maxCost)
+        if (eligible.length < before) reasons.push(`max_cost_usd=${maxCost}_excluded_paid`)
+      }
+      if (excluded.length) reasons.push(`ineligible=[${excluded.join(',')}]`)
+      if (eligible.length === 0) {
+        return err('NO_VALIDATED_PROVIDER',
+          `nenhum provider VALIDATED satisfaz as constraints do request (${reasons.join('; ')})`, false)
+      }
+      // Preferência determinística: local primeiro (custo zero + privacidade por padrão)
+      const provider = eligible.find(p => p.requiresLocalRuntime()) ?? eligible[0]
+      reasons.push(`selected=${provider.id()}:${provider.providerStatus()}`)
+      const resolvedCapability = provider.capabilities().find(cap => cap.kind === request.kind)!.capability
+      return { provider, routing_reason: reasons.join('; '), resolvedCapability }
+    }
+
+    // ---- Capabilities específicas (compat Waves 7–9) -------------------------
+    if (privacyIsLocalOnly(request.constraints) && request.capability !== CAPABILITY_IMAGE_LOCAL) {
+      return err('INVALID_REQUEST', "constraints.privacy=local_only exige capability creative.image.local", false)
     }
     const match = this.providers.find(p =>
       p.capabilities().some(c =>
@@ -59,9 +100,14 @@ export class CreativeRouter {
       return err('UNSUPPORTED_CAPABILITY',
         `nenhum provider atende capability='${request.capability}' skill='${request.skill}' kind='${request.kind}'`)
     }
-    const reason = request.capability === CAPABILITY_IMAGE_LOCAL
-      ? 'capability_local_mandatory' : 'capability_cloud_mandatory'
-    return { provider: match, routing_reason: reason }
+    if (match.providerStatus() !== 'VALIDATED' && !evalMode) {
+      return err('NO_VALIDATED_PROVIDER',
+        `provider '${match.id()}' está ${match.providerStatus()} — elegível somente em modo eval explícito`, false)
+    }
+    const reason = (request.capability === CAPABILITY_IMAGE_LOCAL
+      ? 'capability_local_mandatory' : 'capability_cloud_mandatory')
+      + `; selected=${match.id()}:${match.providerStatus()}` + (evalMode && match.providerStatus() !== 'VALIDATED' ? '; eval_mode' : '')
+    return { provider: match, routing_reason: reason, resolvedCapability: request.capability }
   }
 
   private promptHash(request: CreativeGenerationRequest): string {
@@ -73,8 +119,11 @@ export class CreativeRouter {
   private semanticallyEqual(existing: CreativeJobRecord, req: CreativeGenerationRequest): boolean {
     const requested = (existing.metadata as any)?._requested
       ?? { seed: existing.seed ?? null, width: existing.width ?? null, height: existing.height ?? null }
+    // Skill genérica: capability persistida é a RESOLVIDA pelo Router; replay compara pela skill.
+    const capabilityMatches = req.skill === SKILL_IMAGE_GENERATE
+      ? true : existing.capability === req.capability
     return existing.prompt_hash === this.promptHash(req)
-      && existing.capability === req.capability
+      && capabilityMatches
       && existing.skill === req.skill
       && (existing.preset ?? DEFAULT_PRESET) === (req.preset ?? DEFAULT_PRESET)
       && (requested.seed ?? null) === (req.seed ?? null)
@@ -99,11 +148,12 @@ export class CreativeRouter {
 
     const selected = this.select(request)
     if ('code' in selected) return this.failure(request, selected)
-    const { provider, routing_reason } = selected
+    const { provider, routing_reason, resolvedCapability } = selected
 
     const jobId = randomUUID()
     const persistedRequest: CreativeGenerationRequest = {
       ...request,
+      capability: resolvedCapability,   // skill genérica: capability resolvida pelo Router
       metadata: {
         ...(request.metadata || {}),
         _requested: { seed: request.seed ?? null, width: request.width ?? null, height: request.height ?? null }
@@ -275,6 +325,7 @@ export class CreativeRouter {
       request_id: rec.request_id, job_id: rec.id,
       capability: rec.capability, skill: rec.skill,
       provider: rec.provider_id, routing_reason: rec.routing_reason,
+      provider_status: rec.provider_id ? this.providerById(rec.provider_id)?.providerStatus() : undefined,
       status: rec.status, runtime_state: this.runtime?.getState() ?? 'n/a',
       duration_ms: (rec.completed_at && rec.created_at)
         ? new Date(rec.completed_at).getTime() - new Date(rec.created_at).getTime() : undefined,

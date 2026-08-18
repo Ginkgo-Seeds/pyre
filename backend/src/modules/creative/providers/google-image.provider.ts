@@ -42,6 +42,9 @@ export class GoogleImageProvider implements CreativeProvider {
   id(): string { return 'cloud-google' }
   tool(): string { return 'gemini-image' }
   requiresLocalRuntime(): boolean { return false }
+  // EXPERIMENTAL até um E2E cloud pago bem-sucedido (bloqueio atual: quota 429 — Wave 9).
+  providerStatus() { return 'EXPERIMENTAL' as const }
+  estimatedCostUsd(): number { return costPerImageUsd() }
 
   capabilities(): ProviderCapability[] {
     return [{ capability: CAPABILITY_IMAGE_CLOUD, skill: SKILL_IMAGE_GENERATE_CLOUD, kind: 'image' }]

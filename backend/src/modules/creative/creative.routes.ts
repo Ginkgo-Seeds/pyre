@@ -22,7 +22,8 @@ const HTTP_BY_CODE: Record<CreativeErrorCode, number> = {
   GENERATION_FAILED: 502,
   TIMEOUT: 504,
   ASSET_NOT_FOUND: 404,
-  PROVIDER_STATE_LOST: 500
+  PROVIDER_STATE_LOST: 500,
+  NO_VALIDATED_PROVIDER: 503
 }
 
 export default async function creativeRoutes(app: FastifyInstance) {

@@ -35,6 +35,8 @@ class MockProvider implements CreativeProvider {
   submitted: CreativeGenerationRequest[] = []
   healthy = true
   failWith: any = null
+  status: 'VALIDATED' | 'EXPERIMENTAL' | 'DISABLED' = 'VALIDATED'
+  costUsd = 0
   fetchResult: ProviderJobUpdate = {
     phase: 'completed',
     asset: { path: 'C:\\out\\x.png', mime_type: 'image/png', width: 768, height: 768, bytes: 1000 },
@@ -46,6 +48,8 @@ class MockProvider implements CreativeProvider {
   id() { return this.pid }
   tool() { return this.ptool }
   requiresLocalRuntime() { return this.localRuntime }
+  providerStatus() { return this.status }
+  estimatedCostUsd() { return this.costUsd }
   capabilities() { return this.caps }
   provenance(): ProviderProvenance { return { provider_version: 'mock-v1', model: 'mock-model', model_sha256: 'mock-sha' } }
   async health(): Promise<ProviderHealth> { return { healthy: this.healthy, detail: this.healthy ? 'ok' : 'down' } }
@@ -122,7 +126,7 @@ test('seleção: capability local roteia para provider local (routing_reason reg
   assert.notStrictEqual(res.status, 'failed')
   await waitFor(async () => (await repo.getById(res.job_id))?.status === 'completed')
   const rec = await repo.getById(res.job_id)
-  assert.strictEqual(rec!.routing_reason, 'capability_local_mandatory')
+  assert.ok(rec!.routing_reason!.includes('capability_local_mandatory'))
   assert.strictEqual(local.submitted.length, 1)
 })
 
@@ -273,4 +277,113 @@ test('cloud sem credencial: submit → PROVIDER_UNAVAILABLE (sem cobrança)', as
     () => p.submit(baseRequest({ capability: CAPABILITY_IMAGE_CLOUD, skill: SKILL_IMAGE_GENERATE_CLOUD }) as CreativeGenerationRequest, 'job-y'),
     (e: any) => e.code === 'PROVIDER_UNAVAILABLE'
   )
+})
+
+// ===========================================================================
+// Wave 10 — Routing V3: skill genérica + elegibilidade por provider status
+// ===========================================================================
+
+const SKILL_GENERIC = 'media.image.generate'
+
+function genericRequest(overrides: Partial<CreativeGenerationRequest> = {}): Partial<CreativeGenerationRequest> {
+  const r = baseRequest({ skill: SKILL_GENERIC, ...overrides })
+  delete (r as any).capability   // skill genérica: caller NÃO envia capability
+  return r
+}
+
+function localMock(): MockProvider {
+  return new MockProvider('local', 'comfyui-local',
+    [{ capability: CAPABILITY_IMAGE_LOCAL, skill: SKILL_IMAGE_GENERATE_LOCAL, kind: 'image' }], true)
+}
+function cloudMock(status: 'VALIDATED' | 'EXPERIMENTAL' | 'DISABLED' = 'EXPERIMENTAL', cost = 0.039): MockProvider {
+  const m = new MockProvider('cloud-google', 'gemini-image',
+    [{ capability: CAPABILITY_IMAGE_CLOUD, skill: SKILL_IMAGE_GENERATE_CLOUD, kind: 'image' }], false)
+  m.status = status; m.costUsd = cost
+  return m
+}
+
+test('V3-A: generic + privacy=local_only → local selecionado com routing_reason de policy', async () => {
+  const local = localMock()
+  const { repo, router } = makeRouter([local, cloudMock()])
+  const sel = router.select(genericRequest({ constraints: { privacy: 'local_only' } }) as CreativeGenerationRequest)
+  assert.ok(!('code' in sel))
+  const s = sel as any
+  assert.strictEqual(s.provider.id(), 'local')
+  assert.ok(s.routing_reason.includes('privacy=local_only'))
+  assert.ok(s.routing_reason.includes('selected=local:VALIDATED'))
+  assert.strictEqual(s.resolvedCapability, CAPABILITY_IMAGE_LOCAL)
+})
+
+test('V3-B: generic + cloud_allowed → AINDA local (cloud é EXPERIMENTAL, excluído)', async () => {
+  const { router } = makeRouter([localMock(), cloudMock('EXPERIMENTAL')])
+  const sel = router.select(genericRequest({ constraints: { privacy: 'cloud_allowed', latency: 'fast' } }) as CreativeGenerationRequest)
+  assert.ok(!('code' in sel))
+  const s = sel as any
+  assert.strictEqual(s.provider.id(), 'local')
+  assert.ok(s.routing_reason.includes('cloud-google:EXPERIMENTAL'))   // exclusão registrada
+})
+
+test('V3-C: generic sem NENHUM provider VALIDATED elegível → NO_VALIDATED_PROVIDER', async () => {
+  const { router } = makeRouter([cloudMock('EXPERIMENTAL')])   // só cloud experimental
+  const sel = router.select(genericRequest({ constraints: { privacy: 'cloud_allowed' } }) as CreativeGenerationRequest)
+  assert.ok('code' in sel)
+  assert.strictEqual((sel as any).code, 'NO_VALIDATED_PROVIDER')
+})
+
+test('V3-D: caller enviando provider/tool → INVALID_REQUEST (rejeitado, nunca ignorado em silêncio)', async () => {
+  const { router } = makeRouter([localMock()])
+  const res = await router.submit({ ...genericRequest(), provider: 'cloud-google' } as any)
+  assert.strictEqual(res.error?.code, 'INVALID_REQUEST')
+  const res2 = await router.submit({ ...genericRequest(), tool: 'comfyui-local' } as any)
+  assert.strictEqual(res2.error?.code, 'INVALID_REQUEST')
+})
+
+test('V3-E: max_cost_usd=0 → cloud paga inelegível; local (custo 0) selecionado', async () => {
+  const { router } = makeRouter([localMock(), cloudMock('VALIDATED', 0.039)])
+  const sel = router.select(genericRequest({ constraints: { max_cost_usd: 0 } }) as CreativeGenerationRequest)
+  assert.ok(!('code' in sel))
+  assert.strictEqual((sel as any).provider.id(), 'local')
+  assert.ok((sel as any).routing_reason.includes('max_cost_usd=0'))
+})
+
+test('V3-E2: SÓ cloud paga disponível + max_cost_usd=0 → NO_VALIDATED_PROVIDER', async () => {
+  const { router } = makeRouter([cloudMock('VALIDATED', 0.039)])
+  const sel = router.select(genericRequest({ constraints: { max_cost_usd: 0 } }) as CreativeGenerationRequest)
+  assert.strictEqual((sel as any).code, 'NO_VALIDATED_PROVIDER')
+})
+
+test('V3: capability cloud DIRETA com provider EXPERIMENTAL (sem eval mode) → NO_VALIDATED_PROVIDER', async () => {
+  delete process.env.CREATIVE_EVAL_MODE
+  const { router } = makeRouter([localMock(), cloudMock('EXPERIMENTAL')])
+  const res = await router.submit(baseRequest({ capability: CAPABILITY_IMAGE_CLOUD, skill: SKILL_IMAGE_GENERATE_CLOUD }))
+  assert.strictEqual(res.error?.code, 'NO_VALIDATED_PROVIDER')
+})
+
+test('V3: eval mode explícito permite provider EXPERIMENTAL para capability direta', async () => {
+  process.env.CREATIVE_EVAL_MODE = 'true'
+  const { repo, router } = makeRouter([cloudMock('EXPERIMENTAL')])
+  const res = await router.submit(baseRequest({ capability: CAPABILITY_IMAGE_CLOUD, skill: SKILL_IMAGE_GENERATE_CLOUD }))
+  assert.notStrictEqual(res.status, 'failed')
+  delete process.env.CREATIVE_EVAL_MODE
+})
+
+test('V3: generic E2E unit — submit completo roteia para local e completa', async () => {
+  const local = localMock()
+  const { repo, router } = makeRouter([local, cloudMock()])
+  const res = await router.submit(genericRequest({ constraints: { privacy: 'local_only', latency: 'normal', quality: 'standard', max_cost_usd: 0 } }))
+  assert.notStrictEqual(res.status, 'failed')
+  await waitFor(async () => (await repo.getById(res.job_id))?.status === 'completed')
+  const rec = await repo.getById(res.job_id)
+  assert.strictEqual(rec!.capability, CAPABILITY_IMAGE_LOCAL)   // capability resolvida pelo Router
+  assert.strictEqual(rec!.skill, SKILL_GENERIC)                 // skill genérica preservada
+  assert.strictEqual(local.submitted.length, 1)
+})
+
+test('V3: replay idempotente da skill genérica (sem capability) → mesmo job', async () => {
+  const { repo, router } = makeRouter([localMock()])
+  const req = genericRequest({ request_id: 'gen-idem-1', seed: 5 })
+  const a = await router.submit(req)
+  await waitFor(async () => (await repo.getById(a.job_id))?.status === 'completed')
+  const b = await router.submit({ ...req })
+  assert.strictEqual(b.job_id, a.job_id)
 })

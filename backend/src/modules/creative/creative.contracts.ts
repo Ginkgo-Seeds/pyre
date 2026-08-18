@@ -9,12 +9,24 @@ export const CAPABILITY_IMAGE_LOCAL = 'creative.image.local'
 export const SKILL_IMAGE_GENERATE_LOCAL = 'media.image.generate.local'
 export const CAPABILITY_IMAGE_CLOUD = 'creative.image.cloud'
 export const SKILL_IMAGE_GENERATE_CLOUD = 'media.image.generate.cloud'
+// Wave 10: skill GENÉRICA — caller não conhece provider; Router resolve por policy
+export const SKILL_IMAGE_GENERATE = 'media.image.generate'
+
+// Resource policy formalizada (Wave 10, seção 19) — NÃO aumentar sem nova wave.
+export const LOCAL_GPU_CONCURRENCY = 1   // ComfyUI serializa a fila; Pyre não paraleliza GPU
 
 export interface CreativeConstraints {
-  privacy?: 'local-only' | 'cloud-ok'
-  latency?: 'interactive' | 'batch'
-  quality?: 'draft' | 'standard' | 'premium'
-  max_cost?: number
+  // Contrato genérico (Wave 10). Formas legadas da Wave 7 seguem aceitas.
+  privacy?: 'local_only' | 'cloud_allowed' | 'local-only' | 'cloud-ok'
+  latency?: 'relaxed' | 'normal' | 'fast' | 'interactive' | 'batch'
+  quality?: 'standard' | 'high' | 'draft' | 'premium'
+  max_cost_usd?: number
+  max_cost?: number          // legado
+  residency?: 'local' | 'any'
+}
+
+export function privacyIsLocalOnly(c?: CreativeConstraints): boolean {
+  return c?.privacy === 'local_only' || c?.privacy === 'local-only'
 }
 
 export interface CreativeMetadata {
@@ -49,6 +61,7 @@ export type CreativeErrorCode =
   | 'ASSET_NOT_FOUND'
   | 'IDEMPOTENCY_CONFLICT'   // mesmo request_id com payload semanticamente diferente
   | 'PROVIDER_STATE_LOST'    // job estava em voo quando o Pyre reiniciou; estado interno perdido
+  | 'NO_VALIDATED_PROVIDER'  // nenhum provider VALIDATED satisfaz as constraints do request
 
 export interface CreativeError {
   code: CreativeErrorCode
@@ -142,10 +155,22 @@ export function validateRequest(req: Partial<CreativeGenerationRequest>): Creati
   if (!req || typeof req !== 'object') return err('INVALID_REQUEST', 'corpo do request ausente')
   if (!req.request_id || typeof req.request_id !== 'string')
     return err('INVALID_REQUEST', 'request_id é obrigatório')
-  if (!req.capability) return err('INVALID_REQUEST', 'capability é obrigatória')
+  // Caller NUNCA escolhe provider/tool/modelo — campos rejeitados explicitamente (Wave 10 §21-D)
+  const forbidden = ['provider', 'tool', 'model', 'workflow', 'command', 'args', 'path', 'script']
+  for (const f of forbidden) {
+    if ((req as any)[f] !== undefined)
+      return err('INVALID_REQUEST', `campo '${f}' não é aceito — provider/execução são decisão do Router`)
+  }
   if (!req.skill) return err('INVALID_REQUEST', 'skill é obrigatória')
-  if (req.capability !== CAPABILITY_IMAGE_LOCAL && req.capability !== CAPABILITY_IMAGE_CLOUD)
-    return err('UNSUPPORTED_CAPABILITY', `capability '${req.capability}' não suportada nesta versão`)
+  if (req.skill === SKILL_IMAGE_GENERATE) {
+    // skill genérica: capability é resolvida pelo Router, não pelo caller
+    if (req.capability !== undefined)
+      return err('INVALID_REQUEST', 'skill genérica não aceita capability do caller — o Router resolve')
+  } else {
+    if (!req.capability) return err('INVALID_REQUEST', 'capability é obrigatória')
+    if (req.capability !== CAPABILITY_IMAGE_LOCAL && req.capability !== CAPABILITY_IMAGE_CLOUD)
+      return err('UNSUPPORTED_CAPABILITY', `capability '${req.capability}' não suportada nesta versão`)
+  }
   if (req.kind !== 'image')
     return err('INVALID_REQUEST', `kind '${req.kind}' não suportado nesta versão (somente 'image')`)
   if (!req.prompt || typeof req.prompt !== 'string' || req.prompt.trim().length === 0)

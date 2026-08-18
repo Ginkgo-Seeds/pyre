@@ -29,6 +29,8 @@ export class ComfyUIProvider implements CreativeProvider {
   id(): string { return 'local' }
   tool(): string { return 'comfyui-local' }
   requiresLocalRuntime(): boolean { return true }
+  providerStatus() { return 'VALIDATED' as const }   // evidência: Waves 7/8/9
+  estimatedCostUsd(): number { return 0 }
 
   capabilities(): ProviderCapability[] {
     return [{ capability: CAPABILITY_IMAGE_LOCAL, skill: SKILL_IMAGE_GENERATE_LOCAL, kind: 'image' }]
