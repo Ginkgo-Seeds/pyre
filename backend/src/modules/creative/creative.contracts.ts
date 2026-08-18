@@ -4,9 +4,11 @@
 
 export type CreativeKind = 'image'
 
-// Arsenal contract desta wave (únicos suportados; futuros: creative.image.cloud, creative.video.cloud)
+// Arsenal contract (Wave 7 local + Wave 9 cloud; futuro: creative.video.cloud)
 export const CAPABILITY_IMAGE_LOCAL = 'creative.image.local'
 export const SKILL_IMAGE_GENERATE_LOCAL = 'media.image.generate.local'
+export const CAPABILITY_IMAGE_CLOUD = 'creative.image.cloud'
+export const SKILL_IMAGE_GENERATE_CLOUD = 'media.image.generate.cloud'
 
 export interface CreativeConstraints {
   privacy?: 'local-only' | 'cloud-ok'
@@ -45,6 +47,8 @@ export type CreativeErrorCode =
   | 'GENERATION_FAILED'
   | 'TIMEOUT'
   | 'ASSET_NOT_FOUND'
+  | 'IDEMPOTENCY_CONFLICT'   // mesmo request_id com payload semanticamente diferente
+  | 'PROVIDER_STATE_LOST'    // job estava em voo quando o Pyre reiniciou; estado interno perdido
 
 export interface CreativeError {
   code: CreativeErrorCode
@@ -52,7 +56,16 @@ export interface CreativeError {
   retryable: boolean
 }
 
-export type CreativeJobStatus = 'queued' | 'running' | 'completed' | 'failed'
+// Wave 9: estados intermediários do lifecycle persistido. Compatível com a Wave 8:
+// o workflow n8n só decide em 'completed'/'failed' e trata o resto como em andamento.
+export type CreativeJobStatus =
+  | 'queued'
+  | 'starting_runtime'
+  | 'submitted'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'timeout'
 
 export interface CreativeGenerationResult {
   request_id: string
@@ -131,6 +144,8 @@ export function validateRequest(req: Partial<CreativeGenerationRequest>): Creati
     return err('INVALID_REQUEST', 'request_id é obrigatório')
   if (!req.capability) return err('INVALID_REQUEST', 'capability é obrigatória')
   if (!req.skill) return err('INVALID_REQUEST', 'skill é obrigatória')
+  if (req.capability !== CAPABILITY_IMAGE_LOCAL && req.capability !== CAPABILITY_IMAGE_CLOUD)
+    return err('UNSUPPORTED_CAPABILITY', `capability '${req.capability}' não suportada nesta versão`)
   if (req.kind !== 'image')
     return err('INVALID_REQUEST', `kind '${req.kind}' não suportado nesta versão (somente 'image')`)
   if (!req.prompt || typeof req.prompt !== 'string' || req.prompt.trim().length === 0)
