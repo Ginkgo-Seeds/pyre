@@ -33,6 +33,11 @@ export interface ProviderProvenance {
   model_sha256: string
 }
 
+// Wave 10 (§8): elegibilidade de providers no Skill Atlas.
+// EXPERIMENTAL nunca é selecionável por requests normais de produção —
+// somente em modo eval/test explícito com policy própria.
+export type ProviderStatus = 'VALIDATED' | 'EXPERIMENTAL' | 'DISABLED'
+
 export interface CreativeProvider {
   /** Identificador estável (ex.: 'local', 'cloud-google'). */
   id(): string
@@ -41,6 +46,10 @@ export interface CreativeProvider {
   capabilities(): ProviderCapability[]
   /** true → Router aciona o CreativeRuntimeManager antes do submit. */
   requiresLocalRuntime(): boolean
+  /** Status de validação no Atlas (VALIDATED | EXPERIMENTAL | DISABLED). */
+  providerStatus(): ProviderStatus
+  /** Custo estimado de billing por geração (US$). Local = 0. */
+  estimatedCostUsd(): number
   provenance(): ProviderProvenance
   /** Health REAL (endpoint do serviço/credencial), nunca só porta aberta. */
   health(): Promise<ProviderHealth>
