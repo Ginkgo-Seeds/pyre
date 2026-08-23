@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ginkgo.local/schemas/content.presenter-video.generate/skill-request.v1.schema.json",
+  "title": "Ginkgo Presenter Video Skill Request v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "request_id",
+    "idempotency_key",
+    "workspace_id",
+    "capability",
+    "input",
+    "creative"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skill-request.v1"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 200
+    },
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "campaign_id": {
+      "type": ["string", "null"]
+    },
+    "capability": {
+      "const": "content.presenter-video.generate"
+    },
+    "capability_version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "input": {
+      "type": "object",
+      "properties": {
+        "topic": {
+          "type": "string",
+          "minLength": 1
+        },
+        "script": {
+          "type": "string",
+          "minLength": 1
+        },
+        "presenter_asset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "voice_sample_asset_id": {
+          "type": ["string", "null"]
+        },
+        "supporting_asset_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "source_urls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "default": []
+        }
+      },
+      "required": ["presenter_asset_id"],
+      "oneOf": [
+        {
+          "required": ["topic"],
+          "not": {
+            "required": ["script"]
+          }
+        },
+        {
+          "required": ["script"],
+          "not": {
+            "required": ["topic"]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "creative": {
+      "type": "object",
+      "required": ["language", "aspect", "duration_target_s"],
+      "properties": {
+        "language": {
+          "type": "string",
+          "minLength": 2
+        },
+        "audience": {
+          "type": "string",
+          "default": "general"
+        },
+        "goal": {
+          "type": "string",
+          "default": "explain"
+        },
+        "aspect": {
+          "enum": ["9:16", "16:9", "1:1", "4:5"]
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 7680
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 7680
+        },
+        "fps": {
+          "enum": [24, 25, 30, 50, 60],
+          "default": 30
+        },
+        "duration_target_s": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 1800
+        },
+        "style": {
+          "type": "string"
+        },
+        "visual_route": {
+          "enum": ["auto", "presenter_led", "screen_demo", "mixed_explainer"],
+          "default": "auto"
+        },
+        "watermark": {
+          "type": ["string", "null"]
+        },
+        "cta": {
+          "type": ["string", "null"]
+        },
+        "music": {
+          "type": "boolean",
+          "default": false
+        },
+        "brand_profile_id": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["platform"],
+        "properties": {
+          "platform": {
+            "enum": ["instagram_reels", "tiktok", "youtube_shorts", "linkedin", "x", "download"]
+          },
+          "account_id": {
+            "type": ["string", "null"]
+          },
+          "publish": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": [
+        {
+          "platform": "download",
+          "publish": false
+        }
+      ]
+    },
+    "rights": {
+      "type": "object",
+      "properties": {
+        "presenter_image_confirmed": {
+          "type": "boolean",
+          "default": false
+        },
+        "adult_presenter_confirmed": {
+          "type": "boolean",
+          "default": false
+        },
+        "remote_upload_approved": {
+          "type": "boolean",
+          "default": false
+        },
+        "voice_clone_approved": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "budget": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "max_job_cost": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "max_pilot_cost": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "paid_pilot_approved": {
+          "type": "boolean",
+          "default": false
+        },
+        "full_generation_approved": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "provider_policy": {
+      "type": "object",
+      "properties": {
+        "preferred": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "denied": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "local_first": {
+          "type": "boolean",
+          "default": true
+        },
+        "allow_cloud": {
+          "type": "boolean",
+          "default": true
+        },
+        "allow_provider_switch_without_approval": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "dry_run": {
+          "type": "boolean",
+          "default": false
+        },
+        "publish_side_effects": {
+          "type": "boolean",
+          "default": false
+        },
+        "retry_ceiling": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 3
+        },
+        "priority": {
+          "enum": ["low", "normal", "high"],
+          "default": "normal"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
