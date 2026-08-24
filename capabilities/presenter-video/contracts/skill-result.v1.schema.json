@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ginkgo.local/schemas/content.presenter-video.generate/skill-result.v1.schema.json",
+  "title": "Ginkgo Presenter Video Skill Result v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "request_id",
+    "job_id",
+    "capability",
+    "status",
+    "state",
+    "artifacts",
+    "qa",
+    "cost"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skill-result.v1"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "capability": {
+      "const": "content.presenter-video.generate"
+    },
+    "capability_version": {
+      "type": "string"
+    },
+    "status": {
+      "enum": ["accepted", "running", "blocked", "succeeded", "failed", "cancelled"]
+    },
+    "state": {
+      "enum": [
+        "intake",
+        "authorization_checked",
+        "content_locked",
+        "voice_locked",
+        "audio_verified",
+        "visual_plan_locked",
+        "pilot_generated",
+        "pilot_verified",
+        "full_generation",
+        "presenter_verified",
+        "composition_built",
+        "composition_verified",
+        "rendered",
+        "delivery_verified",
+        "publish_ready",
+        "published",
+        "blocked",
+        "awaiting_approval",
+        "retrying",
+        "failed",
+        "cancelled",
+        "archived"
+      ]
+    },
+    "execution_ready": {
+      "type": "boolean"
+    },
+    "blocked_by": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "approval_type": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "qa": {
+      "type": "object",
+      "required": ["technical_pass"],
+      "properties": {
+        "technical_pass": {
+          "type": "boolean"
+        },
+        "visual_review_status": {
+          "enum": ["not_run", "pending", "passed", "failed"]
+        },
+        "identity_score": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "lipsync_score": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "composition_score": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "caption_score": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "report_artifact_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "cost": {
+      "type": "object",
+      "required": ["currency", "estimated", "actual"],
+      "properties": {
+        "currency": {
+          "type": "string"
+        },
+        "estimated": {
+          "type": "number",
+          "minimum": 0
+        },
+        "actual": {
+          "type": "number",
+          "minimum": 0
+        },
+        "provider_runs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/providerRun"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "publications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["platform", "status"],
+        "properties": {
+          "platform": {
+            "type": "string"
+          },
+          "account_id": {
+            "type": ["string", "null"]
+          },
+          "status": {
+            "enum": ["not_requested", "pending", "published", "failed"]
+          },
+          "post_id": {
+            "type": ["string", "null"]
+          },
+          "published_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/error"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "timestamps": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": ["asset_id", "kind", "uri", "mime_type"],
+      "properties": {
+        "asset_id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": ["string", "null"]
+        },
+        "mime_type": {
+          "type": "string"
+        },
+        "duration_ms": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "width": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "height": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "created_by_run_id": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "providerRun": {
+      "type": "object",
+      "required": ["run_id", "capability", "provider", "status"],
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "capability": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "model": {
+          "type": ["string", "null"]
+        },
+        "version": {
+          "type": ["string", "null"]
+        },
+        "provider_task_id": {
+          "type": ["string", "null"]
+        },
+        "status": {
+          "enum": ["planned", "submitted", "running", "succeeded", "failed", "cancelled"]
+        },
+        "estimated_cost": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "actual_cost": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "currency": {
+          "type": ["string", "null"]
+        },
+        "retry_number": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "provider": {
+          "type": ["string", "null"]
+        },
+        "run_id": {
+          "type": ["string", "null"]
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

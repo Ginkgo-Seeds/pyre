@@ -1,0 +1,184 @@
+schema_version: presenter-video-failure-taxonomy.v1
+
+defaults:
+  max_paid_candidate_rejections: 3
+  require_classification_before_retry: true
+
+failures:
+  INPUT_INVALID:
+    retryable: false
+    action: fix_input
+    provider_switch_allowed: false
+
+  AUTHORIZATION_MISSING:
+    retryable: false
+    action: request_approval
+    provider_switch_allowed: false
+
+  REMOTE_UPLOAD_BLOCKED:
+    retryable: false
+    action: request_policy_or_use_local_provider
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  VOICE_AUTH_MISSING:
+    retryable: false
+    action: request_voice_authorization_or_use_stock_voice
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  BUDGET_EXCEEDED:
+    retryable: false
+    action: request_budget_change_or_choose_cheaper_route
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  POLICY_BLOCK:
+    retryable: false
+    action: change_policy_compliant_route
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  PROVIDER_UNAVAILABLE:
+    retryable: true
+    action: retry_or_fallback
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  PROVIDER_TIMEOUT:
+    retryable: true
+    action: poll_existing_task_before_retry
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  PROVIDER_RATE_LIMIT:
+    retryable: true
+    action: backoff_then_retry
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  PROVIDER_AUTH_ERROR:
+    retryable: false
+    action: operator_fix_credentials
+    provider_switch_allowed: false
+
+  PROVIDER_BILLING_ERROR:
+    retryable: false
+    action: operator_fix_billing
+    provider_switch_allowed: false
+
+  PROVIDER_REJECTED_INPUT:
+    retryable: false
+    action: inspect_normalized_request
+    provider_switch_allowed: false
+
+  PROVIDER_OUTPUT_INVALID:
+    retryable: true
+    action: classify_visual_or_media_defect
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  LOCAL_RUNTIME_UNAVAILABLE:
+    retryable: true
+    action: restart_runtime_or_fallback
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  LOCAL_GPU_OOM:
+    retryable: true
+    action: lower_memory_profile_or_fallback
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  ARTIFACT_MISSING:
+    retryable: false
+    action: reconcile_artifact_store
+    provider_switch_allowed: false
+
+  ARTIFACT_CORRUPT:
+    retryable: true
+    action: recollect_or_regenerate_source_stage
+    provider_switch_allowed: false
+
+  AUDIO_ASR_MISMATCH:
+    retryable: true
+    action: regenerate_mismatching_semantic_section
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  AUDIO_CLIPPING:
+    retryable: true
+    action: regenerate_or_reprocess_audio
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  AUDIO_LOUDNESS_FAIL:
+    retryable: true
+    action: renormalize_whole_program
+    provider_switch_allowed: false
+
+  IDENTITY_DRIFT:
+    retryable: true
+    action: regenerate_with_reduced_motion_and_stronger_identity_anchors
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  LIPSYNC_FAIL:
+    retryable: true
+    action: use_dedicated_lipsync_repair_when_motion_is_accepted
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  HAND_ARTIFACT:
+    retryable: true
+    action: simplify_gesture_crop_or_regenerate
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  EXPOSURE_DRIFT:
+    retryable: true
+    action: lock_exposure_white_balance_and_retry
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  FREEZE_DETECTED:
+    retryable: true
+    action: inspect_source_offsets_or_regenerate_corrupt_source
+    provider_switch_allowed: false
+
+  BLACK_FRAME_DETECTED:
+    retryable: true
+    action: inspect_transition_and_source_bounds
+    provider_switch_allowed: false
+
+  CAPTION_COLLISION:
+    retryable: true
+    action: reflow_from_word_timestamps_and_safe_zones
+    provider_switch_allowed: false
+
+  SAFE_ZONE_COLLISION:
+    retryable: true
+    action: adjust_composition_layout
+    provider_switch_allowed: false
+
+  TIMELINE_OFFSET_ERROR:
+    retryable: true
+    action: repair_timeline_manifest
+    provider_switch_allowed: false
+
+  ENCODE_FAIL:
+    retryable: true
+    action: inspect_encoder_input_and_profile
+    provider_switch_allowed: true
+    provider_switch_requires_same_semantics: true
+
+  FULL_DECODE_FAIL:
+    retryable: true
+    action: reencode_from_valid_composition_source
+    provider_switch_allowed: false
+
+  PUBLICATION_FAIL:
+    retryable: true
+    action: retry_publication_only
+    provider_switch_allowed: false
+    must_not_regenerate_media: true

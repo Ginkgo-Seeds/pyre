@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ginkgo.local/schemas/content.presenter-video.generate/job.v1.schema.json",
+  "title": "Presenter Video Canonical Job v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "job_id",
+    "workspace_id",
+    "request_id",
+    "idempotency_key",
+    "capability",
+    "state",
+    "state_version",
+    "revision",
+    "created_at",
+    "updated_at",
+    "artifacts",
+    "evidence",
+    "provider_runs",
+    "approvals"
+  ],
+  "properties": {
+    "schema_version": {"const": "presenter-video-job.v1"},
+    "job_id": {"type": "string", "minLength": 8},
+    "workspace_id": {"type": "string", "minLength": 1},
+    "campaign_id": {"type": ["string", "null"]},
+    "request_id": {"type": "string", "minLength": 8},
+    "idempotency_key": {"type": "string", "minLength": 8},
+    "capability": {"const": "content.presenter-video.generate"},
+    "capability_version": {"type": "string", "default": "1.0"},
+    "state": {
+      "enum": [
+        "intake",
+        "authorization_checked",
+        "content_locked",
+        "voice_locked",
+        "audio_verified",
+        "visual_plan_locked",
+        "pilot_generated",
+        "pilot_verified",
+        "full_generation",
+        "presenter_verified",
+        "composition_built",
+        "composition_verified",
+        "rendered",
+        "delivery_verified",
+        "publish_ready",
+        "published",
+        "blocked",
+        "awaiting_approval",
+        "retrying",
+        "failed",
+        "cancelled",
+        "archived"
+      ]
+    },
+    "state_version": {"type": "integer", "minimum": 0},
+    "revision": {"type": "integer", "minimum": 1},
+    "execution_ready": {"type": "boolean", "default": false},
+    "requested_by": {"type": ["string", "null"]},
+    "creative": {"type": "object", "additionalProperties": true},
+    "rights_policy": {"type": "object", "additionalProperties": true},
+    "budget_policy": {"type": "object", "additionalProperties": true},
+    "provider_policy": {"type": "object", "additionalProperties": true},
+    "retry_policy": {"type": "object", "additionalProperties": true},
+    "content": {
+      "type": "object",
+      "properties": {
+        "script_revision": {"type": ["integer", "null"]},
+        "script_sha256": {"type": ["string", "null"]},
+        "script_asset_id": {"type": ["string", "null"]},
+        "beat_sheet_asset_id": {"type": ["string", "null"]},
+        "pronunciation_asset_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "audio": {
+      "type": "object",
+      "properties": {
+        "revision": {"type": ["integer", "null"]},
+        "master_asset_id": {"type": ["string", "null"]},
+        "duration_ms": {"type": ["integer", "null"], "minimum": 0},
+        "asr_artifact_id": {"type": ["string", "null"]},
+        "word_timestamp_artifact_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "visual": {
+      "type": "object",
+      "properties": {
+        "plan_revision": {"type": ["integer", "null"]},
+        "route": {"type": ["string", "null"]},
+        "storyboard_asset_id": {"type": ["string", "null"]},
+        "timeline_asset_id": {"type": ["string", "null"]},
+        "selected_presenter_asset_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "provider_runs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "approvals": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "qa_reports": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "publications": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "blocked_by": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": ["string", "null"], "format": "date-time"},
+    "metadata": {"type": "object", "additionalProperties": true}
+  },
+  "additionalProperties": false
+}

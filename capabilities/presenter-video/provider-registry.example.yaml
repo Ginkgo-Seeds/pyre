@@ -1,0 +1,191 @@
+schema_version: ginkgo-provider-registry.v1
+
+# Example only. Production registry is runtime-managed and must use freshly reviewed
+# license, pricing, health and model metadata.
+providers:
+  - adapter_id: ffmpeg.local.v1
+    provider: ffmpeg
+    execution_class: local_cpu
+    lifecycle: PROTOTYPE
+    capabilities:
+      - media.audio.normalize
+      - media.timeline.compose
+      - media.video.encode
+      - media.video.qa
+    health: healthy
+    commercial_ready: review_required
+    policy:
+      remote_upload: false
+      territory_denylist: []
+      requires_fresh_license_review: true
+    routing:
+      quality_score: 0.90
+      cost_score: 1.00
+      latency_score: 0.80
+      reliability_score: 0.95
+
+  - adapter_id: comfyui.local.v1
+    provider: comfyui
+    execution_class: local_gpu
+    lifecycle: FEATURE
+    capabilities:
+      - media.presenter.generate
+      - media.presenter.animate
+      - media.video.broll.generate
+      - media.lipsync.repair
+    health: unknown
+    commercial_ready: review_required
+    policy:
+      remote_upload: false
+      territory_denylist: []
+      requires_fresh_license_review: true
+    routing:
+      cost_score: 0.95
+      latency_score: 0.50
+      reliability_score: 0.50
+
+  - adapter_id: musetalk.local.v1
+    provider: musetalk
+    execution_class: local_gpu
+    lifecycle: FEATURE
+    capabilities:
+      - media.lipsync.repair
+    health: unknown
+    commercial_ready: review_required
+    policy:
+      remote_upload: false
+      territory_denylist: []
+      requires_dependency_audit: true
+    routing:
+      identity_score: 0.50
+      lipsync_score: 0.50
+      cost_score: 0.95
+      latency_score: 0.50
+      reliability_score: 0.50
+
+  - adapter_id: latentsync.local.v1
+    provider: latentsync
+    execution_class: local_gpu
+    lifecycle: FEATURE
+    capabilities:
+      - media.lipsync.repair
+    health: unknown
+    commercial_ready: review_required
+    policy:
+      remote_upload: false
+      territory_denylist: []
+      requires_dependency_audit: true
+    routing:
+      identity_score: 0.50
+      lipsync_score: 0.50
+      cost_score: 0.95
+      latency_score: 0.50
+      reliability_score: 0.50
+
+  - adapter_id: wan.local.v1
+    provider: wan
+    execution_class: local_gpu
+    lifecycle: FEATURE
+    capabilities:
+      - media.video.broll.generate
+      - media.presenter.generate
+    health: unknown
+    commercial_ready: review_required
+    policy:
+      remote_upload: false
+      territory_denylist: []
+      requires_model_benchmark: true
+    routing:
+      quality_score: 0.50
+      identity_score: 0.50
+      lipsync_score: 0.25
+      cost_score: 0.90
+      latency_score: 0.30
+      reliability_score: 0.50
+
+  - adapter_id: hunyuan.local.v1
+    provider: hunyuanvideo
+    execution_class: local_gpu
+    lifecycle: FEATURE
+    capabilities:
+      - media.video.broll.generate
+      - media.presenter.generate
+    health: unknown
+    commercial_ready: false
+    policy:
+      remote_upload: false
+      requires_fresh_license_review: true
+      requires_territory_gate: true
+    routing:
+      quality_score: 0.50
+      identity_score: 0.50
+      cost_score: 0.90
+      latency_score: 0.30
+      reliability_score: 0.50
+
+  - adapter_id: liveportrait.local.v1
+    provider: liveportrait
+    execution_class: local_gpu
+    lifecycle: FEATURE
+    capabilities:
+      - media.presenter.animate
+    health: unknown
+    commercial_ready: false
+    policy:
+      remote_upload: false
+      requires_detector_dependency_replacement_or_review: true
+    routing:
+      quality_score: 0.50
+      identity_score: 0.50
+      cost_score: 0.95
+      latency_score: 0.60
+      reliability_score: 0.50
+
+routing_profiles:
+  presenter_main:
+    weights:
+      quality: 0.15
+      identity: 0.25
+      lipsync: 0.25
+      cost: 0.15
+      latency: 0.10
+      reliability: 0.10
+    hard_gates:
+      - capability
+      - health
+      - license_policy
+      - territory_policy
+      - privacy_policy
+      - duration_support
+      - resolution_support
+      - budget
+
+  lipsync_repair:
+    weights:
+      quality: 0.10
+      identity: 0.25
+      lipsync: 0.35
+      cost: 0.10
+      latency: 0.10
+      reliability: 0.10
+    hard_gates:
+      - capability
+      - health
+      - license_policy
+      - privacy_policy
+      - exact_audio_support
+
+  broll:
+    weights:
+      quality: 0.30
+      identity: 0.00
+      lipsync: 0.00
+      cost: 0.30
+      latency: 0.20
+      reliability: 0.20
+    hard_gates:
+      - capability
+      - health
+      - license_policy
+      - territory_policy
+      - budget
