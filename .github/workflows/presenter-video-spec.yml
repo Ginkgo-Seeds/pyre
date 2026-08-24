@@ -1,0 +1,40 @@
+name: Presenter Video Spec
+
+on:
+  pull_request:
+    paths:
+      - "capabilities/presenter-video/**"
+      - "docs/architecture/presenter-video-engine.md"
+      - "docs/research/lanshu-audit.md"
+      - "scripts/validate_presenter_video_spec.py"
+      - ".github/workflows/presenter-video-spec.yml"
+  push:
+    paths:
+      - "capabilities/presenter-video/**"
+      - "docs/architecture/presenter-video-engine.md"
+      - "docs/research/lanshu-audit.md"
+      - "scripts/validate_presenter_video_spec.py"
+      - ".github/workflows/presenter-video-spec.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate architecture package
+        run: python scripts/validate_presenter_video_spec.py
+
+      - name: Compile validator
+        run: python -m py_compile scripts/validate_presenter_video_spec.py
