@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ginkgo.local/schemas/social-task.v1.schema.json",
+  "title": "Social Task v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "task_id",
+    "capability",
+    "channel",
+    "state",
+    "idempotency_key",
+    "created_at"
+  ],
+  "properties": {
+    "version": {
+      "const": "social-task.v1"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capability": {
+      "type": "string",
+      "enum": [
+        "social.signal.collect",
+        "social.signal.rank",
+        "social.content.draft",
+        "social.content.review",
+        "social.publish",
+        "social.engage.prepare",
+        "social.engage.execute",
+        "social.metrics.collect",
+        "social.lead.detect"
+      ]
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["x", "threads", "linkedin"]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "REVIEW",
+        "SCHEDULED",
+        "RUNNING",
+        "PUBLISHED",
+        "MEASURED",
+        "BLOCKED",
+        "FAILED",
+        "CANCELLED"
+      ]
+    },
+    "executor_preference": {
+      "type": "string",
+      "enum": ["auto", "official_api", "browser"]
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text": {"type": "string"},
+        "media_refs": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "content_hash": {"type": "string"}
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "approval_required": {"type": "boolean"},
+        "max_attempts": {"type": "integer", "minimum": 1, "maximum": 10},
+        "not_before": {"type": "string", "format": "date-time"}
+      }
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "executor": {"type": "string", "enum": ["official_api", "browser"]},
+        "attempt": {"type": "integer", "minimum": 1},
+        "published_ref": {"type": "string"},
+        "evidence_ref": {"type": "string"},
+        "error_class": {"type": "string"}
+      }
+    }
+  }
+}
