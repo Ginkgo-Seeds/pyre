@@ -42,6 +42,17 @@ flowchart LR
     B --> S
 ```
 
+## Extended authority surfaces
+
+Ginkgo Growth also includes durable technical-distribution surfaces:
+
+- **Global Positioning** — global-first content graph, locale/market adaptation and network presence.
+- **LinkedIn Relationship Engine** — relationship intelligence and human-operated connection queue; no autonomous connection farming.
+- **Technical Blog** — canonical long-form source of truth with search, tags, archive, RSS, GitHub evidence and technical revisions.
+- **Newsletter** — weekly synthesis generated from the canonical technical graph, not a separate content silo.
+- **Ginkgo LiveBench** — public-safe, reproducible benchmark snapshots from real model/provider/workflow evaluations.
+- **Ginkgo Library** — searchable public index of articles, benchmark methodologies, workflows, prompts, diagrams, repositories, talks and technical resources.
+
 ## Canonical growth patterns
 
 - Comment keyword -> DM -> follow/eligibility gate -> asset delivery.
@@ -54,6 +65,9 @@ flowchart LR
 - Winner detection -> variants -> cross-platform amplification -> paid candidate.
 - Referral unlocks.
 - Retargeting audiences from high-intent interactions.
+- GitHub/release -> public-safety gate -> technical article -> newsletter -> social derivatives.
+- LiveBench update -> benchmark article -> Library snapshot -> social/newsletter distribution.
+- Target relationship graph -> daily human relationship queue -> relationship memory -> better future content.
 
 ## Risk classes
 
@@ -70,6 +84,9 @@ docs/ginkgo-growth/
 ├── N8N-WORKFLOWS.md
 ├── DATA-CONTRACTS.md
 ├── PROVIDERS.md
+├── GLOBAL-POSITIONING.md
+├── TECH-PUBLISHING.md
+├── LIVEBENCH-LIBRARY.md
 ├── ROADMAP.md
 └── IMPORT-RUNBOOK.md
 ```
@@ -86,11 +103,23 @@ docs/ginkgo-growth/
 8. All synthetic media must preserve provenance internally.
 9. Analytics must attribute performance to source, topic, hook, template, CTA, campaign and cost.
 10. Growth automation must respect platform permissions and user intent; no unsolicited DM spam or fake engagement.
+11. Private GitHub artifacts are not publishable by default; technical publishing requires an explicit disclosure/public-safety gate.
+12. LinkedIn relationship automation may prioritize and brief humans but must not autonomously send invitations, scrape the UI or simulate human engagement.
+13. Public LiveBench scores require versioned methodology, evidence and disclosure approval.
+14. Blog is the canonical long-form source; newsletter and social are derivatives/syndication surfaces.
 
 ## P0 target
 
 P0 is complete only when one real source can run end-to-end:
 
 `LIVE -> TRANSCRIPT -> SEGMENTS -> CONTENT -> RENDER -> QA -> PUBLISH -> COMMENT KEYWORD -> DM -> ASSET -> CONTACT -> GINKGO OPS -> ANALYTICS`
+
+The next authority milestones are:
+
+`GITHUB SIGNAL -> DISCLOSURE GATE -> BLOG -> NEWSLETTER -> SOCIAL`
+
+and:
+
+`EVAL RUN -> LIVEBENCH -> LIBRARY -> TECHNICAL CONTENT -> GROWTH`
 
 See the remaining documents for the implementation contracts.
