@@ -70,6 +70,68 @@ n8n is the execution fabric for Ginkgo Growth. Workflows must be small, replayab
 | GROWTH-31 | Referral Engine | campaign/contact event | referral state |
 | GROWTH-32 | Retargeting Builder | consented audience event | ad audience signal |
 
+## NETWORK / RELATIONSHIP INTELLIGENCE
+
+These workflows create intelligence and queues. They must not autonomously operate LinkedIn invitations, scrape prohibited UI surfaces or fake human engagement.
+
+| ID | Workflow | Trigger | Output |
+|---|---|---|---|
+| NETWORK-01 | Target Graph Import | schedule/manual/source update | candidate identities |
+| NETWORK-02 | Relationship Scoring | candidate update | relevance score |
+| NETWORK-03 | Daily Relationship Queue | daily schedule | human action queue |
+| NETWORK-04 | Comment/Reply Opportunity Brief | public interaction/content signal | suggested context/action |
+| NETWORK-05 | Human Connection Brief | relationship threshold | connection reason/note suggestion |
+| NETWORK-06 | Outcome Sync | manual action result | relationship event |
+| NETWORK-07 | Relationship Memory Update | relationship event | updated graph/memory |
+| NETWORK-08 | Inbound Priority Router | mention/comment/DM/invite | prioritized response queue |
+
+## TECHNICAL PUBLISHING
+
+| ID | Workflow | Trigger | Output |
+|---|---|---|---|
+| TECHPUB-01 | GitHub/Product Signal Intake | PR/release/milestone/product event | technical signal |
+| TECHPUB-02 | Public Relevance Classifier | technical signal | publishability candidate |
+| TECHPUB-03 | Redaction + Disclosure Gate | candidate | pass/block/review |
+| TECHPUB-04 | Technical Draft Builder | approved source/evidence | article draft |
+| TECHPUB-05 | Evidence Linker | draft + source refs | claim/evidence graph |
+| TECHPUB-06 | Article QA | draft | QA/risk result |
+| TECHPUB-07 | Blog Publisher | approved article | canonical article URL |
+| TECHPUB-08 | Newsletter Composer | weekly graph/article event | newsletter draft |
+| TECHPUB-09 | Newsletter Publisher | approved newsletter | delivery result |
+| TECHPUB-10 | Social Derivative Trigger | article published | Media Engine requests |
+| TECHPUB-11 | Article Revision Monitor | source/benchmark changed | revision candidate |
+| TECHPUB-12 | RSS/Search Index Refresh | publish/update | feed/index refresh |
+
+## LIVEBENCH
+
+| ID | Workflow | Trigger | Output |
+|---|---|---|---|
+| BENCH-01 | Eval Plan Builder | schedule/release/manual challenge | versioned eval plan |
+| BENCH-02 | Eval Runner | eval plan | raw evaluation results |
+| BENCH-03 | Result Normalizer | raw result | normalized benchmark rows |
+| BENCH-04 | Statistical/Quality Validator | normalized results | valid/invalid run |
+| BENCH-05 | Cost + Latency Join | validated results + usage telemetry | benchmark economics |
+| BENCH-06 | Disclosure Gate | benchmark snapshot | public/internal decision |
+| BENCH-07 | Public Snapshot Publisher | approved snapshot | LiveBench page/data |
+| BENCH-08 | Benchmark Article Trigger | public snapshot | TECHPUB signal |
+| BENCH-09 | Regression/Drift Monitor | telemetry/new snapshots | rerun/regression event |
+| BENCH-10 | Historical Ranking Refresh | public snapshot | ranking/history update |
+
+## LIBRARY
+
+| ID | Workflow | Trigger | Output |
+|---|---|---|---|
+| LIB-01 | Artifact Intake | public-safe article/repo/workflow/benchmark asset | library candidate |
+| LIB-02 | Metadata + Tag Extractor | candidate | normalized metadata |
+| LIB-03 | Disclosure / License Gate | metadata + source | pass/block/review |
+| LIB-04 | Search Indexer | approved item | indexed library item |
+| LIB-05 | Related Resource Graph | indexed item | related-item edges |
+| LIB-06 | Localization | approved item | localized variant |
+| LIB-07 | Popularity/Utility Scoring | usage analytics | item score |
+| LIB-08 | Revision Sync | source changed | item update |
+| LIB-09 | Feed/RSS Refresh | item publish/update | feed/index refresh |
+| LIB-10 | Lead-Magnet Binding | campaign request | campaign-library binding |
+
 ## ANALYTICS
 
 | ID | Workflow | Trigger | Output |
@@ -113,6 +175,19 @@ publish.requested
 publish.completed
 engagement.received
 lead.updated
+relationship.candidate
+relationship.action_requested
+relationship.updated
+technical_signal.received
+disclosure.review_requested
+article.draft_ready
+article.published
+newsletter.ready
+benchmark.requested
+benchmark.completed
+benchmark.public_snapshot
+library.item_ready
+library.item_published
 analytics.snapshot
 experiment.resolved
 ```
@@ -157,7 +232,13 @@ SYNTHETIC_VIDEO_ENABLED
 DM_AUTOMATION_ENABLED
 FOLLOW_GATE_ENABLED
 PAID_AMPLIFICATION_ENABLED
+TECHPUB_AUTOPUBLISH_ENABLED
+LIVEBENCH_PUBLIC_PUBLISH_ENABLED
+LIBRARY_PUBLIC_PUBLISH_ENABLED
+NETWORK_RELATIONSHIP_QUEUE_ENABLED
 ```
+
+There is deliberately no `LINKEDIN_AUTO_CONNECT_ENABLED` kill switch because autonomous connection sending is outside the design boundary.
 
 ## P0 workflow chain
 
@@ -192,4 +273,33 @@ flowchart LR
   H --> I[GROWTH-23]
   I --> J[GROWTH-25]
   J --> K[Ginkgo Ops]
+```
+
+Technical authority chain:
+
+```mermaid
+flowchart LR
+  A[GitHub / Product Signal] --> B[TECHPUB-01]
+  B --> C[TECHPUB-02]
+  C --> D[TECHPUB-03]
+  D --> E[TECHPUB-04]
+  E --> F[TECHPUB-05]
+  F --> G[TECHPUB-06]
+  G --> H[TECHPUB-07]
+  H --> I[TECHPUB-08]
+  H --> J[TECHPUB-10]
+```
+
+LiveBench/Library chain:
+
+```mermaid
+flowchart LR
+  A[Eval Plan] --> B[BENCH-02]
+  B --> C[BENCH-03]
+  C --> D[BENCH-04]
+  D --> E[BENCH-06]
+  E --> F[BENCH-07]
+  F --> G[BENCH-08]
+  F --> H[LIB-01]
+  H --> I[LIB-04]
 ```
